@@ -1,0 +1,126 @@
+/*Include a jar file (jxl-2.6.10.jar) present in this directory */
+    @Action
+    public void createExcelRept()throws IOException,WriteException{
+        PreparedStatement ps = null;
+        ResultSet rs = null;
+        String reportName = "AllPurchase";
+        
+        File file = new File(REPORT_DIRECTORY + "/" + reportName + ".xls");
+        
+        WorkbookSettings wbSettings = new WorkbookSettings();
+
+        wbSettings.setLocale(new Locale("en", "EN"));
+
+        WritableWorkbook workbook = Workbook.createWorkbook(file, wbSettings);
+        workbook.createSheet("Report", 0);
+        WritableSheet excelSheet = workbook.getSheet(0);
+        createLabel(excelSheet);
+        try{
+            createContent(excelSheet);
+        }catch(ClassNotFoundException c){ }
+        catch (SQLException s){}
+
+        workbook.write();
+        workbook.close();
+        
+    }
+    
+      private void createLabel(WritableSheet sheet)throws WriteException {
+    // Lets create a times font
+          CellFeatures CF = new CellFeatures();
+          
+            jxl.format.Alignment Al = jxl.format.Alignment.LEFT;
+            
+            WritableFont times10pt = new WritableFont(WritableFont.TIMES, 10);
+            // Define the cell format
+            times = new WritableCellFormat(times10pt);
+            // Lets automatically wrap the cells
+            times.setWrap(false);
+            times.setAlignment(Al.LEFT);
+            // Create create a bold font with underlines
+            WritableFont times10ptBoldUnderline = new WritableFont(WritableFont.TIMES, 11, WritableFont.BOLD, false,
+                UnderlineStyle.SINGLE);
+            timesBoldUnderline = new WritableCellFormat(times10ptBoldUnderline);
+            // Lets automatically wrap the cells
+            timesBoldUnderline.setWrap(false);
+            timesBoldUnderline.setAlignment(Al.LEFT);
+            CellView cv = new CellView();
+            
+            cv.setFormat(times);
+            cv.setFormat(timesBoldUnderline);
+            cv.setAutosize(true);
+            
+
+            // Write a few headers
+            addCaption(sheet, 2, 0, "All Purchase Report");
+  }
+      
+      private void createContent(WritableSheet sheet) throws WriteException,ClassNotFoundException,
+              SQLException, RowsExceededException {
+          PreparedStatement ps = null;
+          ResultSet rs = null;
+          String VName = "",VArea = "";
+//          VName = (String)cboVendorName.getSelectedItem();
+//          VArea = (String)cboVendorArea.getSelectedItem();
+          
+	/*Change the fields in the addcaption method called to the ones required for your project - these are actually headings for the table*/
+          addCaption(sheet, 0, 1, "______________________________________________________________________");
+          
+          addCaption(sheet, 0, 2, "IDNo");
+          addCaption(sheet, 1, 2, "VehicleNo");
+          addCaption(sheet, 2, 2, "VendorID");
+          addCaption(sheet, 3, 2, "VendorName");
+          addCaption(sheet, 4, 2, "Area");
+          addCaption(sheet, 5, 2, "PurchaseDate");
+          addCaption(sheet, 6, 2, "GrossWT(KGs)");
+          addCaption(sheet, 7, 2, "NetWT(KGs)");
+          addCaption(sheet, 8, 2, "Amount");
+          
+          addCaption(sheet, 0, 3, "______________________________________________________________________");
+
+          int i = 4;
+          gen.setConn();
+          String Query = "Select * from tbl_purchase_master";
+	/*change the fields in the below given addLabel method with fields required for the project*/          
+          ps = gen.conn.prepareStatement(Query);
+          rs = ps.executeQuery();
+          while (rs.next()){
+              addLabel(sheet, 0, i, rs.getString("IDNo"));
+              addLabel(sheet, 1, i, rs.getString("VehicleNo"));
+              addLabel(sheet, 2, i, rs.getString("VendorID"));
+              addLabel(sheet, 3, i, rs.getString("VendorName"));
+              addLabel(sheet, 4, i, rs.getString("Area"));
+              addLabel(sheet, 5, i, rs.getString("Date"));
+              addNumber(sheet, 6, i, rs.getInt("GrossWT"));
+              addNumber(sheet, 7, i, rs.getInt("NetWT"));
+              addNumber(sheet, 8, i, rs.getInt("Amount"));
+              i++;
+          }
+          rs.close();
+          ps.close();
+
+          addCaption(sheet, 0, i, "______________________________________________________________________");
+          
+}
+      
+      private void addCaption(WritableSheet sheet, int column, int row, String s)
+          throws RowsExceededException, WriteException {
+        Label label;
+        
+        label = new Label(column, row, s, timesBoldUnderline);
+        sheet.addCell(label);
+      }
+
+      private void addNumber(WritableSheet sheet, int column, int row,
+          Integer integer) throws WriteException, RowsExceededException {
+        Number number;
+        number = new Number(column, row, integer, times);
+        sheet.addCell(number);
+      }
+
+      private void addLabel(WritableSheet sheet, int column, int row, String s)
+          throws WriteException, RowsExceededException {
+        Label label;
+        label = new Label(column, row, s, times);
+        sheet.addCell(label);
+      }
